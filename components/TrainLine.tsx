@@ -10,7 +10,7 @@ export default function Canton(props: any) {
     //each path defines the shape of a region in the map
     return (
         <path
-            className="path fill-zinc-200 hover:fill-cyan-200 stroke-gray-800"
+            className="path fill-purple-200 hover:fill-purple-600 stroke-gray-800"
             d={path}
             onMouseOver={() => {
                 handleMouseOver(tooltipData);
