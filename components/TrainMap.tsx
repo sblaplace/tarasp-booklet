@@ -1,47 +1,29 @@
-import * as d3 from "d3";
-import { setMapProjection } from "../helpers/setMapProjection";
-import { useMapTools } from "../hooks/useMapTools";
-import Canton from "./Canton";
-import TrainLine from './TrainLine';
+import { MapContainer } from 'react-leaflet/MapContainer';
+import { TileLayer } from 'react-leaflet/TileLayer';
+import { useMap } from 'react-leaflet/hooks';
+import { Marker } from 'react-leaflet/Marker';
+import { Popup } from 'react-leaflet/Popup';
+import { GeoJSON } from 'react-leaflet/GeoJSON'
+import { useEffect, useState } from 'react';
 
-export default function TrainMap(_props: any) {
-    // step 1: load geoJSON and create tooltip
-    const { mapData } = useMapTools();
+export default function TrainMap(_props: any): JSX.Element {
+    /*const [lineStops, setLineStops] = useState([]);*/
+    const [lines, setLines] = useState([]);
 
-    // render map only when map data is fully loaded
-    if (!mapData.loading) {
-        // step 2: render the regions
-        // compute a path function based on correct projections that we will use later
-        const path = d3.geoPath().projection(setMapProjection(mapData.cantonData));
-        // for each geoJSON coordinate, compute and pass in the equivalent svg path
-        const cantons = mapData.cantonData.features.map((data: any) =>
-            <Canton
-                key={data.properties.UUID}
-                path={path(data)}
-                tooltipData={data.properties["NAME"]}
-            />);
+    useEffect(() => {
+        /*         fetch("data/linie-mit-betriebspunkten.geojson").then(res => res.json()).then(setLineStops);*/
+        fetch("data/linie-mit-polygon.geojson").then(res => res.json()).then(setLines);
 
-        const lines = mapData.lineData.features.map((data: any) => {
-            const bpuicString = new String(data.properties.bpuic);
-            const lineString = new String(data.properties.linie);
-            return (<TrainLine
-                key={bpuicString.toString().concat(lineString.toString())}
-                path={path(data)}
-                tooltipData={data.properties["bezeichnung_offiziell"]}
-            />);
-        }
-        )
+    }, []);
 
-        return (
-            <div className="flex justify-content flex-col min-w-full min-h-screen">
-                <h1 className="mx-auto text-2xl">Map of Train Routes</h1>
-                <svg className="map-canvas min-h-screen mx-auto w-1/2 mt-20">
-                    <g>{cantons}</g>
-                    <g>{lines}</g>
-                </svg>
-            </ div>
-        );
-    } else {
-        return <h1>Loading...</h1>;
-    }
+    return (
+        <MapContainer center={[46.826, 8.223]} zoom={8} scrollWheelZoom={false} className="min-w-full min-h-screen">
+            <TileLayer
+                attribution='<a href=\"https://www.jawg.io\" target=\"_blank\">&copy; Jawg</a> - <a href=\"https://www.openstreetmap.org\" target=\"_blank\">&copy; OpenStreetMap</a>&nbsp;contributors'
+                url="https://tile.jawg.io/jawg-light/{z}/{x}/{y}{r}.png?access-token=Xwcmvz6mMAgJtV3LsDRKyQ0V8si3G38gOJOUP3T6IHvyeTdPhvPc88IsupJm5t01"
+            />
+            {/*<GeoJSON key={lineStops} data={lineStops} style={{ "color": "#ff7800", "weight": 5, "opacity": 0.65 }}></GeoJSON>*/}
+            <GeoJSON key={lines} data={lines} style={{ "color": "#ff7800", "weight": 5, "opacity": 0.65 }}></GeoJSON>
+        </MapContainer>
+    );
 }
